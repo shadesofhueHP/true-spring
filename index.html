@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>True Spring</title>
+
+<style>
+*{box-sizing:border-box;}
+
+body{
+font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+margin:0;
+background:#f5f2f1;
+}
+
+.container{
+max-width:900px;
+margin:auto;
+padding:8px 16px 16px;
+}
+
+.header{
+text-align:center;
+margin-bottom:8px;
+}
+
+.logo{
+display:block;
+max-width:220px;
+margin:0 auto 6px;
+}
+
+.header h1{
+font-family:Georgia,serif;
+font-weight:500;
+margin:0;
+}
+
+.grid{
+display:grid;
+grid-template-columns:repeat(3,1fr);
+gap:14px;
+}
+
+.section-title{
+grid-column:1/-1;
+font-size:12px;
+letter-spacing:.15em;
+color:#6d7280;
+margin-top:14px;
+}
+
+.tile{
+aspect-ratio:1;
+border-radius:20px;
+cursor:pointer;
+}
+
+.lightbox{
+position:fixed;
+inset:0;
+display:none;
+z-index:999;
+}
+
+.lightbox.show{
+display:block;
+}
+
+.lightbox-color{
+position:absolute;
+inset:0;
+}
+
+.close-btn{
+position:absolute;
+top:32px;
+right:32px;
+width:36px;
+height:36px;
+border-radius:50%;
+border:none;
+background:rgba(255,255,255,.22);
+color:white;
+font-size:22px;
+display:flex;
+align-items:center;
+justify-content:center;
+backdrop-filter:blur(6px);
+-webkit-backdrop-filter:blur(6px);
+cursor:pointer;
+}
+
+.controls{
+position:absolute;
+top:32px;
+right:84px;
+display:flex;
+gap:8px;
+}
+
+.btn{
+width:36px;
+height:36px;
+border-radius:50%;
+border:none;
+background:rgba(255,255,255,.22);
+color:white;
+font-size:16px;
+display:flex;
+align-items:center;
+justify-content:center;
+backdrop-filter:blur(6px);
+-webkit-backdrop-filter:blur(6px);
+cursor:pointer;
+}
+
+.swipe{
+position:absolute;
+bottom:18px;
+left:50%;
+transform:translateX(-50%);
+color:white;
+letter-spacing:.15em;
+font-size:12px;
+}
+
+@media (max-width:640px){
+.logo{max-width:180px;}
+.grid{gap:12px;}
+.tile{border-radius:18px;}
+
+.close-btn{
+top:28px;
+right:28px;
+}
+
+.controls{
+top:28px;
+right:76px;
+}
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<div class="header">
+<img class="logo" src="logo.png" alt="Shades of Hue logo">
+<h1>True Spring</h1>
+<div>Tap color • Swipe to browse</div>
+</div>
+
+<div id="grid" class="grid"></div>
+
+</div>
+
+<div id="lightbox" class="lightbox">
+<div id="lightboxColor" class="lightbox-color"></div>
+
+<button id="close" class="close-btn">×</button>
+
+<div class="controls">
+<button id="prev" class="btn">←</button>
+<button id="next" class="btn">→</button>
+</div>
+
+<div class="swipe">SWIPE</div>
+</div>
+
+<script>
+
+const groups = [
+
+{
+title:"TRUE SPRING NEUTRALS",
+colors:[
+"#FFF8EA",
+"#F3E2C3",
+"#E9CF9B",
+"#D8AE7C",
+"#BE9E5F",
+"#7E5B40"
+]
+},
+
+{
+title:"LIGHT WARM BASICS",
+colors:[
+"#F7E5C9",
+"#F1D39A",
+"#E5B886",
+"#E4C96A",
+"#C0C64A",
+"#9BB84A"
+]
+},
+
+{
+title:"PEACHES + APRICOTS",
+colors:[
+"#F3BEA4",
+"#EEAA8A",
+"#EB8C64",
+"#E38A63",
+"#F1C489",
+"#E8B25A"
+]
+},
+
+{
+title:"CORALS + SALMONS",
+colors:[
+"#F26F6D",
+"#E46A68",
+"#E68467",
+"#E97E5B",
+"#E44549",
+"#DD7F7A"
+]
+},
+
+{
+title:"WARM REDS",
+colors:[
+"#E63542",
+"#E4474A",
+"#DD5B3A",
+"#C95A34",
+"#B84B2D"
+]
+},
+
+{
+title:"YELLOWS",
+colors:[
+"#F6DB73",
+"#F1C743",
+"#EDB14B",
+"#E5D06C",
+"#D9B24A"
+]
+},
+
+{
+title:"YELLOW GREENS",
+colors:[
+"#B7C84A",
+"#AFC54B",
+"#9FBE48",
+"#8BB84C",
+"#78B84F"
+]
+},
+
+{
+title:"GREENS",
+colors:[
+"#6FB850",
+"#4FB34C",
+"#3BA53D",
+"#1F9154",
+"#1E8E74",
+"#1B8A66"
+]
+},
+
+{
+title:"AQUAS + TURQUOISES",
+colors:[
+"#52B8A9",
+"#48B1B4",
+"#2FA9AF",
+"#2BA3B5",
+"#2197A6",
+"#1D8E99"
+]
+},
+
+{
+title:"SPRING BLUES",
+colors:[
+"#9CB7DF",
+"#7E92CB",
+"#6F83C4",
+"#466FBD",
+"#256DBD"
+]
+},
+
+{
+title:"PURPLES",
+colors:[
+"#6A55A4",
+"#7A63B0",
+"#8B74BB"
+]
+}
+
+];
+
+const grid=document.getElementById("grid");
+const lightbox=document.getElementById("lightbox");
+const lightboxColor=document.getElementById("lightboxColor");
+
+let all=[];
+let index=0;
+let startX=0;
+
+groups.forEach(group=>{
+
+const title=document.createElement("div");
+title.className="section-title";
+title.textContent=group.title;
+grid.appendChild(title);
+
+group.colors.forEach(color=>{
+
+all.push(color);
+
+const tile=document.createElement("div");
+tile.className="tile";
+tile.style.background=color;
+
+tile.onclick=()=>{
+index=all.indexOf(color);
+open();
+};
+
+grid.appendChild(tile);
+
+});
+
+});
+
+function open(){
+lightbox.classList.add("show");
+render();
+}
+
+function render(){
+lightboxColor.style.background=all[index];
+}
+
+function next(){
+index=(index+1)%all.length;
+render();
+}
+
+function prev(){
+index=(index-1+all.length)%all.length;
+render();
+}
+
+document.getElementById("close").onclick=()=>lightbox.classList.remove("show");
+document.getElementById("next").onclick=next;
+document.getElementById("prev").onclick=prev;
+
+lightbox.addEventListener("touchstart",e=>{
+startX=e.touches[0].clientX;
+});
+
+lightbox.addEventListener("touchend",e=>{
+let diff=e.changedTouches[0].clientX-startX;
+if(Math.abs(diff)<40)return;
+diff<0?next():prev();
+});
+
+</script>
+
+</body>
+</html>
